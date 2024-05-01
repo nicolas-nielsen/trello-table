@@ -1,113 +1,225 @@
-import Image from "next/image";
+'use client';
+
+import { List } from '@/components/list';
+import React, { useEffect, useState } from 'react';
+import {
+  defaultTrelloLists,
+  localStorageHelper,
+  trelloListKey,
+} from '@/utils/localstorage.helper';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { ICard, IList } from '@/types/types';
+import AddIcon from '@mui/icons-material/Add';
+import { generateUuid } from '@/utils/identifier.generator';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
 export default function Home() {
+  const initialListState: IList[] = [];
+  const [lists, setLists] = useState(initialListState);
+  const [isAddingList, setIsAddingList] = useState(false);
+  const [listName, setListName] = useState('');
+
+  useEffect(() => {
+    try {
+      if (!localStorageHelper.keyExists(trelloListKey)) {
+        localStorageHelper.setDefaultList();
+      }
+
+      setLists(localStorageHelper.parseKey(trelloListKey));
+    } catch (e: unknown) {
+      console.error(e);
+
+      setLists(defaultTrelloLists);
+    }
+  }, []);
+
+  const addCard = (card: ICard, id: string): void => {
+    const newLists: IList[] = lists.map((list: IList) => {
+      if (list.id === id) {
+        list.cards.push(card);
+      }
+
+      return list;
+    });
+
+    updateLists(newLists);
+  };
+
+  const updateCard = (updatedCard: ICard) => {
+    const newLists = lists.map((list: IList) => {
+      list.cards.map((card: ICard) => {
+        if (card.id === updatedCard.id) {
+          Object.assign(card, updatedCard);
+        }
+
+        return card;
+      });
+
+      return list;
+    });
+
+    updateLists(newLists);
+  };
+
+  const removeCard = (id: string): void => {
+    const newLists: IList[] = lists.map((list: IList) => {
+      list.cards = list.cards.filter((card: ICard) => card.id !== id);
+
+      return list;
+    });
+
+    updateLists(newLists);
+  };
+
+  const removeList = (id: string): void => {
+    const newLists: IList[] = lists.filter((list: IList) => {
+      return list.id !== id;
+    });
+
+    updateLists(newLists);
+  };
+
+  const initializeData = (): void => {
+    localStorageHelper.setDefaultList();
+    setLists(localStorageHelper.parseKey(trelloListKey));
+  };
+
+  const updateLists = (lists: IList[]): void => {
+    setLists(lists);
+
+    localStorageHelper.setKey(lists, trelloListKey);
+  };
+
+  const handleAddList = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+
+    if (listName === '') {
+      return;
+    }
+
+    const list: IList = { id: generateUuid(), listName: listName, cards: [] };
+    setLists((prevState) => [...prevState, list]);
+    handleCloseForm();
+    setListName('');
+  };
+
+  const handleCloseForm = () => {
+    setIsAddingList(false);
+  };
+
+  const handleOpenForm = () => {
+    setIsAddingList(true);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setListName(e.target.value);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', p: '8px' }}>
+        <Typography
+          sx={{
+            color: 'primary.main',
+            fontSize: 18,
+            fontWeight: 700,
+            pl: '12px',
+          }}
+        >
+          Tableau principal
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={initializeData}
+          sx={{
+            color: 'primary.main',
+            bgcolor: 'info.main',
+            mx: 2,
+            '&:hover': {
+              bgcolor: 'info.light',
+              opacity: 0.8,
+            },
+          }}
+        >
+          Initialiser le jeu de données
+        </Button>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, ml: 1 }}>
+        {lists.map((list: IList) => (
+          <List
+            key={list.id}
+            content={list}
+            addCard={addCard}
+            updateCard={updateCard}
+            removeCard={removeCard}
+            removeList={removeList}
+          />
+        ))}
+        {!isAddingList && (
+          <Button
+            onClick={handleOpenForm}
+            sx={{
+              minWidth: 272,
+              maxWidth: 272,
+              bgcolor: 'secondary.light',
+              color: 'primary.main',
+              '&:hover': { bgcolor: '#ffffff52' },
+            }}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+            <AddIcon />
+            Ajouter une autre liste
+          </Button>
+        )}
+        {isAddingList && (
+          <Box
+            component="form"
+            onSubmit={handleAddList}
+            sx={{
+              minWidth: 272,
+              maxWidth: 272,
+              bgcolor: 'primary.dark',
+              borderRadius: '3px',
+              p: '3px',
+            }}
+          >
+            <TextField
+              fullWidth
+              value={listName}
+              onChange={handleChange}
+              size="small"
+              sx={{ fontSize: '14px', bgcolor: 'primary.main' }}
             />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+            <Box sx={{ mt: '4px' }}>
+              <Button
+                type="submit"
+                sx={{
+                  bgcolor: 'info.main',
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'info.light',
+                    opacity: 0.8,
+                  },
+                }}
+              >
+                Ajouter une liste
+              </Button>
+              <IconButton
+                aria-label="close"
+                onClick={handleCloseForm}
+                sx={{
+                  color: (theme) => theme.palette.grey[500],
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+      </Box>
+    </Box>
   );
 }
