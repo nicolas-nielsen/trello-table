@@ -152,7 +152,7 @@ export default function Home() {
         {lists.map((list: IList) => (
           <List
             key={list.id}
-            content={list}
+            listContent={list}
             addCard={addCard}
             updateCard={updateCard}
             removeCard={removeCard}

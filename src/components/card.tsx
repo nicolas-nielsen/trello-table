@@ -19,20 +19,20 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import TextField from '@mui/material/TextField';
 
 export function Card({
-  content,
+  cardContent,
   listName,
   updateCard,
   removeCard,
 }: {
-  content: ICard;
+  cardContent: ICard;
   listName: string;
   updateCard: Function;
   removeCard: Function;
 }) {
-  const [card, setCard] = useState(content);
+  const [card, setCard] = useState(cardContent);
   const [open, setOpen] = useState(false);
   const [openForm, setOpenForm] = useState(false);
-  const [description, setDescription] = useState(content.cardDesc);
+  const [description, setDescription] = useState(cardContent.cardDesc);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -102,7 +102,7 @@ export function Card({
       >
         <Box>
           <Typography sx={{ px: '8px', fontFamily: 'Arial', fontSize: '14px' }}>
-            {content.cardName}
+            {card.cardName}
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'left', pl: '8px' }}>
             {card.isFollowed && (
@@ -124,7 +124,7 @@ export function Card({
           id="alert-dialog-title"
           sx={{ fontSize: '20px', fontWeight: 600 }}
         >
-          {content.cardName}
+          {card.cardName}
           <DialogContentText>
             <Box sx={{ display: 'flex' }}>
               <Typography>

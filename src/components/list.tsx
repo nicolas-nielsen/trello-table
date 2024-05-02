@@ -16,13 +16,13 @@ import MuiCard from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
 export function List({
-  content,
+  listContent,
   addCard,
   updateCard,
   removeCard,
   removeList,
 }: {
-  content: IList;
+  listContent: IList;
   addCard: Function;
   updateCard: Function;
   removeCard: Function;
@@ -38,7 +38,7 @@ export function List({
       return;
     }
 
-    addCard({ id: generateUuid(), cardName }, content.id);
+    addCard({ id: generateUuid(), cardName }, listContent.id);
     setCardName('');
     handleCloseForm();
   };
@@ -58,10 +58,10 @@ export function List({
   const handleRemoveList = () => {
     if (
       window.confirm(
-        `Voulez allez supprimer la liste nommée ${content.listName}.\nAppuyez sur "OK" pour continuer.\nOu sur "Annuler" pour fermer.`
+        `Voulez allez supprimer la liste nommée ${listContent.listName}.\nAppuyez sur "OK" pour continuer.\nOu sur "Annuler" pour fermer.`
       )
     ) {
-      removeList(content.id);
+      removeList(listContent.id);
     }
   };
 
@@ -79,7 +79,7 @@ export function List({
           sx={{ display: 'flex', position: 'relative', px: '8px', py: '10px' }}
         >
           <Typography sx={{ fontSize: '14px', fontWeight: '600', pl: '8px' }}>
-            {content.listName}
+            {listContent.listName}
           </Typography>
           <IconButton
             onClick={handleRemoveList}
@@ -93,11 +93,11 @@ export function List({
           </IconButton>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          {content.cards.map((card: ICard) => (
+          {listContent.cards.map((card: ICard) => (
             <Card
               key={card.id}
-              content={card}
-              listName={content.listName}
+              cardContent={card}
+              listName={listContent.listName}
               updateCard={updateCard}
               removeCard={removeCard}
             />
