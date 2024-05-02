@@ -48,7 +48,7 @@ export const localStorageHelper = {
     return JSON.parse(localStorage.getItem(key) ?? '');
   },
 
-  setKey(json: IList[], key: string) {
+  setKey(json: Array<any> | Object, key: string) {
     localStorage.setItem(key, JSON.stringify(json));
   },
 
