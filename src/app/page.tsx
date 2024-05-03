@@ -148,7 +148,15 @@ export default function Home() {
           Initialiser le jeu de données
         </Button>
       </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, ml: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          gap: 1,
+          ml: 1,
+        }}
+      >
         {lists.map((list: IList) => (
           <List
             key={list.id}
